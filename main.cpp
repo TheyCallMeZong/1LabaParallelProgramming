@@ -11,12 +11,15 @@ int b;
 int thread_number;
 int n;
 double *result;
-vector<int> vec;
 double h;
 
 void set_h(){
     h = (b - a) / 1.0 / n;
 }
+
+struct data{
+    int index;
+};
 
 double f(double x)
 {
@@ -24,8 +27,7 @@ double f(double x)
 }
 
 void* potok(void * data_param){
-    int j = vec.back();
-    vec.pop_back();
+    int j = ((data*)data_param)->index;
     double S = 0;
     double F, xi;
     int start = j * (n / thread_number);
@@ -44,12 +46,13 @@ void integralpram()
     double S = 0;
     result = new double[thread_number];
     pthread_t threads[thread_number];
+    data data_t[thread_number];
     set_h();
     for (int i = 0; i < thread_number; i++) {
-        vec.push_back(i);
+        data_t[i].index = i;
     }
     for (int i = 0; i < thread_number; i++) {
-        pthread_create(&threads[i], NULL, potok, NULL);
+        pthread_create(&threads[i], NULL, potok, &data_t[i]);
     }
     for (int i = 0; i < thread_number; i++) {
         pthread_join(threads[i], NULL);
@@ -80,4 +83,3 @@ int main()
     auto elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
     cout << "The time: " << elapsed_ms.count() << " ms";
 }
-
